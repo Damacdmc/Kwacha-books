@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kwacha Books</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700&family=Public+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: a phone running the chat on the left, the merchant's live books on the right; stacks on phones. */
+:root {
+  --bg: #EEF2EF;
+  --surface: #FFFFFF;
+  --ink: #10261F;
+  --muted: #55665F;
+  --line: #D5DED9;
+  --brand: #10261F;
+  --accent: #B4531F;
+  --accent-soft: #F6E3D6;
+  --chat-bg: #E4EBE7;
+  --bubble-in: #FFFFFF;
+  --bubble-out: #D7EBDF;
+  --warn: #8A5A00;
+  --warn-bg: #FFF2CC;
+  --display: 'Rubik', 'Trebuchet MS', Arial, sans-serif;
+  --body: 'Public Sans', Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1714; --surface: #15231F; --ink: #E8EFEB; --muted: #9DB0A8; --line: #2A3B35;
+    --brand: #0A1A15; --accent: #E9A877; --accent-soft: #3A2618; --chat-bg: #0F1D19;
+    --bubble-in: #1C2D28; --bubble-out: #1F4434; --warn: #F2C94C; --warn-bg: #3A3010; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1714; --surface: #15231F; --ink: #E8EFEB; --muted: #9DB0A8; --line: #2A3B35;
+  --brand: #0A1A15; --accent: #E9A877; --accent-soft: #3A2618; --chat-bg: #0F1D19;
+  --bubble-in: #1C2D28; --bubble-out: #1F4434; --warn: #F2C94C; --warn-bg: #3A3010; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 32px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 24px; }
+header h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); max-width: 62ch; }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+/* phone */
+.phone { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; height: 640px; max-width: 100%; }
+.bar { background: var(--brand); color: #F3F7F5; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #1A120C; display: grid; place-items: center; font-family: var(--display); font-weight: 700; }
+.bar b { display: block; font-size: 15px; }
+.bar small { color: #B9CCC4; font-size: 12px; }
+.chat { flex: 1; background: var(--chat-bg); overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 85%; padding: 8px 10px 6px; border-radius: 12px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+.msg.in { background: var(--bubble-in); align-self: flex-start; border-top-left-radius: 4px; }
+.msg.out { background: var(--bubble-out); align-self: flex-end; border-top-right-radius: 4px; }
+.msg .fwd { display: block; font-size: 11px; font-style: italic; color: var(--muted); margin-bottom: 2px; }
+.msg time { display: block; text-align: right; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.compose { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); background: var(--surface); }
+.compose input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 20px; padding: 9px 14px; font: inherit; background: var(--bg); color: var(--ink); }
+.compose button { border: 0; border-radius: 20px; padding: 0 16px; background: var(--brand); color: #F3F7F5; font: inherit; font-weight: 600; cursor: pointer; }
+
+/* controls + books */
+.side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-weight: 500; font-size: 18px; margin: 0 0 4px; }
+.panel .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.actions button:hover { border-color: var(--accent); }
+.actions button.ghost { background: transparent; color: var(--muted); font-weight: 400; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 560px) { .totals { grid-template-columns: repeat(2, 1fr); } }
+.tot { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.tot span { display: block; font-size: 12px; color: var(--muted); }
+.tot b { font-family: var(--display); font-weight: 500; font-size: 20px; font-variant-numeric: tabular-nums; }
+.tot.all { background: var(--accent-soft); border-color: transparent; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+.pill.check { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.empty { color: var(--muted); font-size: 13px; padding: 12px 0; }
+.note { font-size: 12px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .msg { animation: pop .18s ease-out; } @keyframes pop { from { transform: translateY(4px); opacity: .4; } } }
+</style>
+<style>
+.msg a { color: var(--accent); font-weight: 600; }
+.status { font-size: 12px; color: var(--muted); }
+.err { color: var(--warn); }
+td .raw { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; max-width: 46ch; white-space: normal; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="tag">Prototype · running on this computer</span>
+    <h1>Kwacha Books</h1>
+    <p>Chat with the real bot as a merchant would on WhatsApp. Forward an example SMS, paste a real one, or type “sale 250 sugar”. Your records are saved on this computer only.</p>
+  </header>
+
+  <div class="grid">
+    <section class="phone" aria-label="Chat with Kwacha Books">
+      <div class="bar"><div class="avatar" aria-hidden="true">K</div><div><b>Kwacha Books</b><small id="status">bookkeeping bot</small></div></div>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <form class="compose" id="compose">
+        <input id="msgInput" type="text" placeholder="Type or paste a message" autocomplete="off" aria-label="Message">
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <div class="side">
+      <section class="panel">
+        <h2>Quick messages</h2>
+        <p class="sub">The example SMS are made up, in the style of each network. Paste real ones into the chat to test them.</p>
+        <div class="actions" id="actions">
+          <button data-text="You have received ZMW 250.00 from JOHN BANDA 0961234567. Transaction ID: 4419328871. Your new balance is ZMW 1,320.50. MTN MoMo" data-fwd="1">Forward MTN payment</button>
+          <button data-text="Airtel Money: You have received ZMW 85.50 from CHANDA MWALE, 0977654321. Txn ID: CI261028.1130.B77231. Balance ZMW 605.50." data-fwd="1">Forward Airtel payment</button>
+          <button data-text="Zamtel Money: You have received K500.00 from PETER TEMBO 0951239876. Transaction ID: ZM88123001. Balance: K3,020.50" data-fwd="1">Forward Zamtel payment</button>
+          <button data-text="You have received K75 from Ben 0960000000. Ref: XY12345" data-fwd="1">Forward unclear SMS</button>
+          <button data-text="sale 120 sugar">Log cash sale</button>
+          <button data-text="expense 80 transport">Log expense</button>
+          <button data-text="today">Today’s totals</button>
+          <button data-text="week">Last 7 days</button>
+          <button data-text="statement">Monthly statement</button>
+          <button data-text="undo">Undo last</button>
+          <button data-text="help">Help</button>
+          <button class="ghost" id="reset">Erase and start over</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>The merchant’s books today</h2>
+        <p class="sub" id="bookDate">What the bot has recorded.</p>
+        <div class="totals" id="totals"></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Time</th><th>Channel</th><th>From / note</th><th>Ref</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="empty">Nothing recorded today yet.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const chat = document.getElementById("chat");
+  const statusEl = document.getElementById("status");
+  const k = n => "K" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const now = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmt = s => esc(s).replace(/\*([^*\n]+)\*/g, "<b>$1</b>");
+
+  function bubble(html, side, forwarded) {
+    const d = document.createElement("div");
+    d.className = "msg " + side;
+    d.innerHTML = (forwarded ? '<span class="fwd">Forwarded</span>' : "") + html + `<time>${now()}</time>`;
+    chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  async function api(path, body) {
+    const res = await fetch(path, body === undefined ? {} :
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  }
+
+  async function send(text, forwarded) {
+    if (!text.trim()) return;
+    bubble(fmt(text), "out", forwarded);
+    statusEl.textContent = "typing…";
+    try {
+      const data = await api("/api/message", { text });
+      data.replies.forEach(r => bubble(fmt(r.text) +
+        (r.document ? `<br><a href="${r.document}" target="_blank" rel="noopener">Open statement (PDF)</a>` : ""), "in"));
+      await refresh();
+    } catch (e) {
+      bubble('<span class="err">Could not reach the bot. Is <b>python web.py</b> still running?</span>', "in");
+    }
+    statusEl.textContent = "bookkeeping bot";
+  }
+
+  async function refresh() {
+    const b = await api("/api/books");
+    document.getElementById("bookDate").textContent = "Recorded on " + b.date + ".";
+    document.getElementById("totals").innerHTML =
+      `<div class="tot all"><span>Total in</span><b>${k(b.totals.in)}</b></div>` +
+      `<div class="tot"><span>Mobile money</span><b>${k(b.totals.digital)}</b></div>` +
+      `<div class="tot"><span>Cash</span><b>${k(b.totals.cash)}</b></div>` +
+      `<div class="tot"><span>Money out</span><b>${k(b.totals.out)}</b></div>`;
+    document.getElementById("rows").innerHTML = b.entries.map(e => `<tr>
+      <td>${esc(e.time)}</td><td>${esc(e.channel)}</td>
+      <td>${esc(e.who || "–")}${e.channel !== "Cash" && e.raw ? `<span class="raw">${esc(e.raw)}</span>` : ""}</td>
+      <td>${esc(e.ref || "–")}</td>
+      <td class="num">${e.direction === "out" ? "−" : ""}${k(e.amount)}</td>
+      <td>${e.check ? '<span class="pill check">Check</span>' : '<span class="pill">' + (e.direction === "in" ? "In" : "Out") + "</span>"}</td></tr>`).join("");
+    document.getElementById("empty").hidden = b.entries.length > 0;
+    return b;
+  }
+
+  async function start() {
+    chat.innerHTML = "";
+    try {
+      const b = await refresh();
+      if (!b.consented) await send("hi", false);
+      else bubble("Welcome back. Forward a payment SMS or type <b>today</b> for your totals.", "in");
+    } catch (e) {
+      bubble('<span class="err">Could not reach the bot. Start it with <b>python web.py</b>.</span>', "in");
+    }
+  }
+
+  document.getElementById("actions").addEventListener("click", ev => {
+    const b = ev.target.closest("button");
+    if (!b || b.id === "reset") return;
+    send(b.dataset.text, !!b.dataset.fwd);
+  });
+  document.getElementById("reset").addEventListener("click", async () => {
+    await api("/api/reset", {});
+    start();
+  });
+  document.getElementById("compose").addEventListener("submit", ev => {
+    ev.preventDefault();
+    const input = document.getElementById("msgInput");
+    send(input.value, false);
+    input.value = "";
+  });
+  start();
+})();
+</script>
+</body>
+</html>
